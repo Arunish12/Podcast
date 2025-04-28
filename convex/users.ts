@@ -1,5 +1,4 @@
 import { ConvexError, v } from "convex/values";
-
 import { internalMutation, query } from "./_generated/server";
 
 export const getUserById = query({
@@ -18,14 +17,13 @@ export const getUserById = query({
   },
 });
 
-// this query is used to get the top user by podcast count. first the podcast is sorted by views and then the user is sorted by total podcasts, so the user with the most podcasts will be at the top.
 export const getTopUserByPodcastCount = query({
   args: {},
   handler: async (ctx, args) => {
-    const user = await ctx.db.query("users").collect();
+    const users = await ctx.db.query("users").collect();
 
     const userData = await Promise.all(
-      user.map(async (u) => {
+      users.map(async (u) => {
         const podcasts = await ctx.db
           .query("podcasts")
           .filter((q) => q.eq(q.field("authorId"), u.clerkId))
@@ -70,6 +68,7 @@ export const updateUser = internalMutation({
     clerkId: v.string(),
     imageUrl: v.string(),
     email: v.string(),
+    name: v.string(),
   },
   async handler(ctx, args) {
     const user = await ctx.db
@@ -81,20 +80,24 @@ export const updateUser = internalMutation({
       throw new ConvexError("User not found");
     }
 
+    // Update the user record
     await ctx.db.patch(user._id, {
       imageUrl: args.imageUrl,
       email: args.email,
+      name: args.name,
     });
 
-    const podcast = await ctx.db
+    // Fetch and update all podcasts linked to the user
+    const podcasts = await ctx.db
       .query("podcasts")
       .filter((q) => q.eq(q.field("authorId"), args.clerkId))
       .collect();
 
     await Promise.all(
-      podcast.map(async (p) => {
+      podcasts.map(async (p) => {
         await ctx.db.patch(p._id, {
           authorImageUrl: args.imageUrl,
+          author: args.name, // Ensure podcast author name is updated
         });
       })
     );

@@ -45,3 +45,37 @@ export const generateThumbnailAction = action({
     return buffer;
   }
 })
+
+export const generateSummaryAction = action({
+  args: { text: v.string() },
+  handler: async (_, { text }) => {
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "Summarize the provided text for a second-grade student.",
+          },
+          {
+            role: "user",
+            content: text,
+          },
+        ],
+        temperature: 0.7,
+        max_tokens: 150,
+      });
+
+      const summary = response.choices[0]?.message?.content?.trim();
+      
+      if (!summary) {
+        throw new Error("Failed to generate summary.");
+      }
+
+      return summary;
+    } catch (error: any) {
+      console.error("Summary generation error:", error);
+      throw new Error("Error generating summary. Please try again.");
+    }
+  },
+});

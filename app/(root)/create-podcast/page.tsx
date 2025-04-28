@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-
+import GenerateSummary from "@/components/GenerateSummary";
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -58,7 +58,8 @@ const CreatePodcast = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const createPodcast = useMutation(api.podcasts.createPodcast)
-
+  
+  
   const { toast } = useToast()
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
@@ -120,7 +121,7 @@ const CreatePodcast = () => {
                 <FormItem className="flex flex-col gap-2.5">
                   <FormLabel className="text-16 font-bold text-white-1">Title</FormLabel>
                   <FormControl>
-                    <Input className="input-class focus-visible:ring-offset-orange-1" placeholder="JSM Pro Podcast" {...field} />
+                    <Input className="input-class focus-visible:ring-offset-orange-1" placeholder="GenAI Cast" {...field} />
                   </FormControl>
                   <FormMessage className="text-white-1" />
                 </FormItem>
@@ -163,10 +164,15 @@ const CreatePodcast = () => {
                     <Textarea className="input-class focus-visible:ring-offset-orange-1" placeholder="Write a short podcast description" {...field} />
                   </FormControl>
                   <FormMessage className="text-white-1" />
-                </FormItem>
+                </FormItem> 
               )}
             />
           </div>
+                   {/* Generate AI Summary */}
+            <GenerateSummary 
+            description={form.watch("podcastDescription")} 
+            setAiPrompt={setVoicePrompt} 
+          />
           <div className="flex flex-col pt-10">
               <GeneratePodcast 
                 setAudioStorageId={setAudioStorageId}
@@ -205,4 +211,4 @@ const CreatePodcast = () => {
   )
 }
 
-export default CreatePodcast
+export default CreatePodcast  
